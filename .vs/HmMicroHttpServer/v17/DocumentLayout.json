@@ -1,9 +1,9 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "G:\\vs_project\\HmMicroHttpServer\\",
+  "WorkspaceRootPath": "G:\\repogitory\\hm_micro_http_server\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{C5707239-02AA-4AE8-9281-B5A5347F3E52}|HmMicroHttpServer.csproj|g:\\vs_project\\hmmicrohttpserver\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{C5707239-02AA-4AE8-9281-B5A5347F3E52}|HmMicroHttpServer.csproj|g:\\repogitory\\hm_micro_http_server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C5707239-02AA-4AE8-9281-B5A5347F3E52}|HmMicroHttpServer.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -14,7 +14,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -25,21 +25,21 @@
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Program.cs",
-              "DocumentMoniker": "G:\\vs_project\\HmMicroHttpServer\\Program.cs",
+              "DocumentMoniker": "G:\\repogitory\\hm_micro_http_server\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "G:\\vs_project\\HmMicroHttpServer\\Program.cs",
+              "ToolTip": "G:\\repogitory\\hm_micro_http_server\\Program.cs",
               "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAANEAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABoAAAAAAAAAAADwvy8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-24T03:31:05.555Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
             }
           ]
         }
