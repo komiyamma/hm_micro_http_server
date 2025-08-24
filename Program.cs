@@ -2,9 +2,16 @@
 using System.Diagnostics;
 using System.Web;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices; // Win32 API呼び出し用
 
+/// <summary>
+/// 簡易HTTPサーバのエントリポイント
+/// </summary>
 class Program
 {
+    /// <summary>
+    /// 拡張子ごとのMIMEタイプ辞書
+    /// </summary>
     static readonly ConcurrentDictionary<string, string> Mime = new(new[]
     {
         // テキスト系
@@ -94,57 +101,138 @@ class Program
         new KeyValuePair<string,string>(".yml","text/yaml"),
     });
 
+    /// <summary>
+    /// Win32 API: 指定したウィンドウハンドルが有効かどうかを判定
+    /// </summary>
+    [DllImport("user32.dll")]
+    static extern bool IsWindow(IntPtr hWnd);
+
+    /// <summary>
+    /// プログラムのエントリポイント
+    /// </summary>
     static void Main(string[] args)
     {
-        int port;
         string root;
+        IntPtr? windowHandle = null;
 
-        if (args.Length >= 2 && int.TryParse(args[0], out port) && Directory.Exists(args[1]))
+        // 第1引数: ルートディレクトリ
+        if (args.Length >= 1 && Directory.Exists(args[0]))
         {
-            root = Path.GetFullPath(args[1]);
+            root = Path.GetFullPath(args[0]);
         }
         else
         {
+            // デフォルト: 実行ディレクトリ配下のwww
             root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "www"));
             if (!Directory.Exists(root))
             {
                 Console.Error.WriteLine($"www not found: {root}");
                 return;
             }
-            port = GetFreePort();
         }
 
-        Console.WriteLine($"[INFO] Using port: {port}");
-        RunServer(port, root);
+        // 第2引数: ウィンドウハンドル（省略可）
+        if (args.Length >= 2 && long.TryParse(args[1], out var handleValue))
+        {
+            windowHandle = new IntPtr(handleValue);
+        }
+
+        // 利用可能なポートを取得し、サーバ起動
+        int port = GetFreePort();
+        // Console.WriteLine($"[INFO] Using port: {port}"); // ← 実際に確保したポートはRunServerで出力
+        RunServer(port, root, windowHandle);
     }
 
-    static void RunServer(int port, string root)
+    /// <summary>
+    /// HTTPサーバを起動し、リクエストを受け付ける
+    /// </summary>
+    /// <param name="port">バインドするポート番号</param>
+    /// <param name="root">公開ディレクトリ</param>
+    /// <param name="windowHandle">監視対象ウィンドウハンドル（省略可）</param>
+    static void RunServer(int port, string root, IntPtr? windowHandle)
     {
-        string url = $"http://localhost:{port}/";
-        var listener = new HttpListener();
-        listener.Prefixes.Add(url);
-        listener.Start();
+        HttpListener listener = new HttpListener();
+        string url;
+        int retry = 0;
+        // ポート競合時は最大10回までリトライ
+        while (true)
+        {
+            url = $"http://localhost:{port}/";
+            listener.Prefixes.Clear();
+            listener.Prefixes.Add(url);
+            try
+            {
+                listener.Start();
+                break;
+            }
+            catch (HttpListenerException)
+            {
+                if (++retry > 10) throw;
+                port = GetFreePort();
+                continue;
+            }
+        }
 
-        // 既定ブラウザ起動
-        Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
-
+        Console.WriteLine($"[INFO] Using port: {port}"); // 実際に確保したポート番号を出力
         Console.WriteLine("Serving " + root);
         Console.WriteLine(" → " + url);
 
-        while (true)
+        var cts = new CancellationTokenSource();
+
+        // ウィンドウハンドル監視タスク（指定がある場合のみ）
+        Task? monitorTask = null;
+        if (windowHandle.HasValue)
         {
-            try
+            monitorTask = Task.Run(async () =>
             {
-                _ = listener.GetContextAsync().ContinueWith(t => Handle(t.Result, root));
-            }
-            catch (Exception ex)
+                while (true)
+                {
+                    // ウィンドウが閉じられたらサーバも停止
+                    if (!IsWindow(windowHandle.Value))
+                    {
+                        Console.WriteLine("[INFO] ウィンドウが閉じられたためサーバーを終了します。");
+                        cts.Cancel();
+                        listener.Stop();
+                        break;
+                    }
+                    await Task.Delay(1500);
+                }
+            });
+        }
+
+        try
+        {
+            // リクエスト受信ループ
+            while (!cts.IsCancellationRequested)
             {
-                Console.Error.WriteLine("Listener error: " + ex);
-                Thread.Sleep(1000);
+                try
+                {
+                    // 非同期でリクエストを受信し、Handleで処理
+                    var contextTask = listener.GetContextAsync();
+                    contextTask.Wait(cts.Token);
+                    _ = Handle(contextTask.Result, root);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine("Listener error: " + ex);
+                    Thread.Sleep(1000);
+                }
             }
+        }
+        finally
+        {
+            listener.Close();
         }
     }
 
+    /// <summary>
+    /// 利用可能なローカルポート番号をランダムに取得
+    /// </summary>
+    /// <returns>空いているポート番号</returns>
     static int GetFreePort()
     {
         var used = new HashSet<int>();
@@ -156,6 +244,7 @@ class Program
             used.Add(port);
             try
             {
+                // 一時的にリッスンして空きを確認
                 var l = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, port);
                 l.Start();
                 int found = ((System.Net.IPEndPoint)l.LocalEndpoint).Port;
@@ -170,10 +259,16 @@ class Program
         throw new Exception("空いているポートが見つかりませんでした（50回試行）");
     }
 
+    /// <summary>
+    /// HTTPリクエストを処理し、ファイルを返却
+    /// </summary>
+    /// <param name="ctx">リクエストコンテキスト</param>
+    /// <param name="root">公開ディレクトリ</param>
     static async Task Handle(HttpListenerContext ctx, string root)
     {
         try
         {
+            // URLデコードし、ルートや空パスはindex.htmlにフォールバック
             string path = HttpUtility.UrlDecode(ctx.Request.Url!.AbsolutePath);
             if (string.IsNullOrEmpty(path) || path == "/") path = "/index.html";
 
@@ -186,16 +281,18 @@ class Program
 
             if (!File.Exists(full))
             {
-                // SPA フォールバック
+                // SPA用途などでindex.htmlにフォールバック
                 full = Path.Combine(root, "index.html");
                 if (!File.Exists(full)) { ctx.Response.StatusCode = 404; ctx.Response.Close(); return; }
             }
 
+            // MIMEタイプを拡張子から判定
             string ext = Path.GetExtension(full).ToLowerInvariant();
             ctx.Response.ContentType = Mime.TryGetValue(ext, out var m) ? m : "application/octet-stream";
 
             ctx.Response.AddHeader("Cache-Control", "no-cache");
 
+            // ファイルをストリームで返却
             using var fs = File.OpenRead(full);
             await fs.CopyToAsync(ctx.Response.OutputStream);
             ctx.Response.StatusCode = 200;
@@ -203,6 +300,7 @@ class Program
         }
         catch
         {
+            // 例外時は500エラー
             try { ctx.Response.StatusCode = 500; ctx.Response.Close(); } catch { }
         }
     }
