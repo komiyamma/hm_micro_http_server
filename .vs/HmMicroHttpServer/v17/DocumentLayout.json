@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "G:\\repogitory\\hm_micro_http_server\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{C5707239-02AA-4AE8-9281-B5A5347F3E52}|HmMicroHttpServer.csproj|g:\\repogitory\\hm_micro_http_server\\hmmicrohttpserver.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{C5707239-02AA-4AE8-9281-B5A5347F3E52}|HmMicroHttpServer.csproj|solutionrelative:hmmicrohttpserver.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{C5707239-02AA-4AE8-9281-B5A5347F3E52}|HmMicroHttpServer.csproj|g:\\repogitory\\hm_micro_http_server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C5707239-02AA-4AE8-9281-B5A5347F3E52}|HmMicroHttpServer.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
@@ -27,12 +31,24 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "HmMicroHttpServer",
+              "DocumentMoniker": "G:\\repogitory\\hm_micro_http_server\\HmMicroHttpServer.csproj",
+              "RelativeDocumentMoniker": "HmMicroHttpServer.csproj",
+              "ToolTip": "G:\\repogitory\\hm_micro_http_server\\HmMicroHttpServer.csproj",
+              "RelativeToolTip": "HmMicroHttpServer.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-08-25T08:52:55.396Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "Program.cs",
               "DocumentMoniker": "G:\\repogitory\\hm_micro_http_server\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
               "ToolTip": "G:\\repogitory\\hm_micro_http_server\\Program.cs",
               "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAADsBAAAAAAAAAAAAAMEAAAAlAAAAAAAAAA==",
+              "ViewState": "AgIAADQBAAAAAAAAAAAAAMEAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-24T03:31:05.555Z",
               "EditorCaption": ""
