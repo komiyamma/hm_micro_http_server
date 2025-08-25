@@ -105,6 +105,7 @@ class Program
     /// Win32 API: 指定したウィンドウハンドルが有効かどうかを判定
     /// </summary>
     [DllImport("user32.dll")]
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     static extern bool IsWindow(IntPtr hWnd);
 
     /// <summary>
@@ -183,21 +184,28 @@ class Program
         Task? monitorTask = null;
         if (windowHandle.HasValue)
         {
-            monitorTask = Task.Run(async () =>
+            if (OperatingSystem.IsWindows())
             {
-                while (true)
+                monitorTask = Task.Run(async () =>
                 {
-                    // ウィンドウが閉じられたらサーバも停止
-                    if (!IsWindow(windowHandle.Value))
+                    while (true)
                     {
-                        Console.WriteLine("[INFO] ウィンドウが閉じられたためサーバーを終了します。");
-                        cts.Cancel();
-                        listener.Stop();
-                        break;
+                        // ウィンドウが閉じられたらサーバも停止
+                        if (!IsWindow(windowHandle.Value))
+                        {
+                            Console.WriteLine("[INFO] ウィンドウが閉じられたためサーバーを終了します。");
+                            cts.Cancel();
+                            listener.Stop();
+                            break;
+                        }
+                        await Task.Delay(1500);
                     }
-                    await Task.Delay(1500);
-                }
-            });
+                });
+            }
+            else
+            {
+                Console.WriteLine("[WARN] ウィンドウハンドル監視はWindowsでのみサポートされているため、この引数は無視されます。");
+            }
         }
 
         try
